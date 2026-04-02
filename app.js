@@ -1,16 +1,34 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+require("dotenv").config();
 
 const app = express();
 app.use(express.json());
-require("dotenv").config();
+
 
 const SECRET = process.env.SECRET;
 
-app.post("/login", (req, res) => {
-  const username = req.body.username;
 
-  const token = jwt.sign({ username }, SECRET);
+//bcrypt.hash("password123", 10).then(console.log);
+const user={
+  username:"teddy",
+  password: "$2b$10$awcPW/JdEcT3s2pa.fx0jug/iF5SY7BZvJMwPYd/8EyVls8fvI7ii" // hashed version of "password123"
+}
+
+app.post("/login", async (req, res) => {
+  const {username,password} = req.body;
+  if(username!==user.username){
+    return res.send("User not found"); 
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if(!isMatch){
+    return res.send("Wrong Password")
+  }
+
+  const token = jwt.sign({username}, SECRET);
 
   res.json({ token });
 });
